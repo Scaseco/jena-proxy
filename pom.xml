@@ -3,17 +3,17 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.aksw.jena.connect</groupId>
-	<artifactId>jena-connect-parent</artifactId>
+	<groupId>org.aksw.jena.proxy</groupId>
+	<artifactId>jena-proxy-parent</artifactId>
 	<version>0.7.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Jena Connect - Parent</name>
+	<name>Jena Proxy - Parent</name>
 	<description>Remote Connection Tooling for Apache Jena</description>
 
-	<url>https://github.com/Scaseco/jena-connect</url>
+	<url>https://github.com/Scaseco/jena-proxy</url>
 	<issueManagement>
-		<url>https://github.com/Scaseco/jena-connect/issues</url>
+		<url>https://github.com/Scaseco/jena-proxy/issues</url>
 		<system>GitHub</system>
 	</issueManagement>
 	<licenses>
@@ -24,7 +24,7 @@
 		</license>
 	</licenses>
 	<scm>
-		<url>https://github.com/Scaseco/jena-connect</url>
+		<url>https://github.com/Scaseco/jena-proxy</url>
 		<connection>scm:git:git://github.com/Scaseco/jena-dataset-over-rdflink.git</connection>
 		<developerConnection>
 			scm:git:git@github.com:Scaseco/jena-dataset-over-rdflink.git</developerConnection>
@@ -39,8 +39,8 @@
 		</developer>
 	</developers>
 	<modules>
-		<module>jena-connect-dataset-sparql</module>
-		<module>jena-connect-dataset-rdflink</module>
+		<module>jena-proxy-dataset-sparql</module>
+		<module>jena-proxy-dataset-rdflink</module>
 	</modules>
 	<properties>
 		<jena.version>6.2.0-SNAPSHOT</jena.version>
@@ -120,14 +120,14 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.aksw.jena.connect</groupId>
-				<artifactId>jena-connect-dataset-sparql</artifactId>
+				<groupId>org.aksw.jena.proxy</groupId>
+				<artifactId>jena-proxy-dataset-sparql</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>org.aksw.jena.connect</groupId>
-				<artifactId>jena-connect-dataset-rdflink</artifactId>
+				<groupId>org.aksw.jena.proxy</groupId>
+				<artifactId>jena-proxy-dataset-rdflink</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
