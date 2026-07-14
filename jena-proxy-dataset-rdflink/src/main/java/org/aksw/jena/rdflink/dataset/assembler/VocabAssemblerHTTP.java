@@ -7,13 +7,16 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
  */
 
 package org.aksw.jena.rdflink.dataset.assembler;
@@ -22,34 +25,58 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.system.Vocab;
 
+/**
+ * Vocabulary definitions for the HTTP dataset assembler.
+ *
+ * @since 0.7.0
+ */
 public class VocabAssemblerHTTP
 {
-    // private static final String NS = "http://jena.apache.org/2025/http#";
     private static final String NS = "https://w3id.org/aksw/jena/dataset#";
 
+    /**
+     * Utility classes should not be instantiated.
+     */
+    private VocabAssemblerHTTP() {
+    }
+
+    /**
+     * Get the namespace URI.
+     *
+     * @return the namespace URI
+     */
     public static String getURI() { return NS; }
 
     // Types
 
     // Preferred
+    /** Dataset HTTP resource type. */
     public static final Resource tDatasetHTTP        = Vocab.type(NS, "DatasetHTTP");
 
     // Property to specify the auth type
+    /** Property for authentication type. */
     public static final Property pAuth               = Vocab.property(NS, "auth");
 
     // public static final Resource tAuthBasic        = Vocab.type(NS, "AuthBasic");
     // public static final Resource tAuthBearer        = Vocab.type(NS, "AuthBaerer");
 
     // Basic auth
+    /** Property for username in basic authentication. */
     public static final Property pUser               = Vocab.property(NS, "user");
+    /** Property for password in basic authentication. */
     public static final Property pPass               = Vocab.property(NS, "pass");
 
+    /** Property for token authentication. */
     public static final Property pToken               = Vocab.property(NS, "token");
 
     // Destination sets query, update and gsp endpoint to the same default value.
     // The specific properties can override.
+    /** Property for destination endpoint (used as default for query, update and gsp endpoints). */
     public static final Property pDestination        = Vocab.property(NS, "destination");
+    /** Property for SPARQL query endpoint. */
     public static final Property pQueryEndpoint      = Vocab.property(NS, "queryEndpoint");
+    /** Property for SPARQL update endpoint. */
     public static final Property pUpdateEndpoint     = Vocab.property(NS, "updateEndpoint");
+    /** Property for SPARQL graph store protocol endpoint. */
     public static final Property pGspEndpoint        = Vocab.property(NS, "gspEndpoint");
 }

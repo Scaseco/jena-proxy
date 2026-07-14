@@ -55,13 +55,20 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
     private final PrefixMapping prefixMapping = Prefixes.adapt(prefixes);
     private final Transactional transactional = TransactionalNull.create();
 
-    /** Helper that knows how to turn a Query/UpdateRequest into an executable. */
     private final DsgSparqlExecutor executor;
 
+    /**
+     * Create a new dataset with the default executor.
+     */
     public DatasetGraphSparql() {
         this(DsgSparqlExecutor.DEFAULT);
     }
 
+    /**
+     * Create a new dataset with the given executor.
+     *
+     * @param executor The executor to use for SPARQL operations
+     */
     public DatasetGraphSparql(DsgSparqlExecutor executor) {
         super();
         this.executor = Objects.requireNonNull(executor);
@@ -73,25 +80,51 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
         return prefixes;
     }
 
+    /**
+     * Get the transactional component.
+     *
+     * @return The transactional component
+     */
     protected Transactional getTransactional() {
         return transactional;
     }
 
+    /**
+     * Initialize the context with SPARQL configuration.
+     */
     protected void initContext() {
-        // Advertise that SPARQL statements should not be parsed.
-        // XXX This feature did not yet make it into jena - requires changes to the query/update builders.
-        // Context cxt = getContext();
-        // ParseCheckUtils.setParseCheck(cxt, false);
     }
 
+    /**
+     * Execute a SPARQL query.
+     *
+     * @param query The query to execute
+     * @return Query execution result
+     */
     protected abstract QueryExec query(Query query);
+
+    /**
+     * Execute a SPARQL update.
+     *
+     * @param updateRequest The update request to execute
+     * @return Update execution result
+     */
     protected abstract UpdateExec update(UpdateRequest updateRequest);
 
-    /** Create a bulk‑insert {@link StreamRDF} that writes via the executor. */
+    /**
+     * Create a bulk-insert {@link StreamRDF} that writes via the executor.
+     *
+     * @return A new StreamRDF sink
+     */
     protected StreamRDF newUpdateSink() {
         return new StreamRDFToUpdateRequest(this::execUpdate, prefixMapping, Integer.MAX_VALUE);
     }
 
+    /**
+     * Execute an update request.
+     *
+     * @param updateRequest The update request to execute
+     */
     protected void execUpdate(UpdateRequest updateRequest) {
         UpdateExec uExec = update(updateRequest);
         uExec.execute();
@@ -109,7 +142,6 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
 
     @Override
     public Iterator<Quad> findNG(Node g, Node s, Node p, Node o) {
-        // Named‑graph only
         return executor.findNG(this::query, prefixMapping, g, s, p, o);
     }
 
@@ -161,7 +193,6 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
 
     @Override
     public void addGraph(Node graphName, Graph graph) {
-        // COPY is eligible when adding a graph that is already a view over this dataset.
         if (graph instanceof GraphView view && view.getDataset() == this) {
             Node source = view.getGraphName();
             executor.copy(this::update, prefixMapping, source, graphName);
@@ -170,6 +201,12 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
         }
     }
 
+    /**
+     * Add a graph using the update sink.
+     *
+     * @param graphName Name of the graph to add
+     * @param graph The graph data to add
+     */
     protected void addGraphViaUpdateSink(Node graphName, Graph graph) {
         StreamRDF sink = newUpdateSink();
         try {
@@ -269,19 +306,4 @@ public abstract class DatasetGraphSparql extends DatasetGraphBase {
     public TxnType transactionType() {
         return getTransactional().transactionType();
     }
-
-//    @Override
-//    protected Stream<Quad> streamInDftGraph(Node s, Node p, Node o) {
-//        return Iter.asStream(findInDftGraph(s, p, o));
-//    }
-//
-//    @Override
-//    protected Stream<Quad> streamInSpecificNamedGraph(Node g, Node s, Node p, Node o) {
-//        return Iter.asStream(findInSpecificNamedGraph(g, s, p, o));
-//    }
-//
-//    @Override
-//    protected Stream<Quad> streamInAnyNamedGraphs(Node s, Node p, Node o) {
-//        return Iter.asStream(findInAnyNamedGraphs(s, p, o));
-//    }
 }

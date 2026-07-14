@@ -29,26 +29,36 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFOps;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
-/* TODO
- * org.apache.jena.riot.streamrdf?
- *
+/**
+ * Utilities for sending RDF data to a {@link StreamRDF}.
+ * Unless otherwise stated, send* operations do not call stream.start()/stream.finish()
+ * whereas other operations do.
  */
-/** Utilities for sending to StreamRDF.
- *  Unless otherwise stated, send* operations do not call stream.start()/stream.finish()
- *  whereas other operations do.
- */
-
 public class StreamRDFOpsExtra {
+
+    private StreamRDFOpsExtra() {
+    }
+
     /**
-     * Send the triples of graph and an explicitly given prefix mapping, to a StreamRDF.
-     * This operation does not include start/finish nesting - see {@link #sendGraphToStream}.
+     * Send the triples of a graph to a StreamRDF.
+     * This operation does not include start/finish nesting.
+     *
+     * @param graph The graph to send
+     * @param stream The target stream
      */
     public static void sendGraphToStream(Graph graph, StreamRDF stream) {
         PrefixMap prefixMap = PrefixMapFactory.create(graph.getPrefixMapping()) ;
         sendGraphToStream(graph, stream, null, prefixMap) ;
     }
 
-    /** Send the triples of graph, and an explicitly given prefix mapping, to a StreamRDF */
+    /**
+     * Send the triples of a graph to a StreamRDF with optional base URI and prefix mapping.
+     *
+     * @param graph The graph to send
+     * @param stream The target stream
+     * @param baseURI Base URI for the stream, or null
+     * @param prefixMap Prefix mapping for the stream, or null
+     */
     public static void sendGraphToStream(Graph graph, StreamRDF stream, String baseURI, PrefixMap prefixMap) {
         if ( baseURI != null )
             stream.base(baseURI);
@@ -57,7 +67,12 @@ public class StreamRDFOpsExtra {
         sendGraphTriplesToStream(graph, stream);
     }
 
-    /** Send only the triples of graph to a StreamRDF */
+    /**
+     * Send only the triples of a graph to a StreamRDF.
+     *
+     * @param graph The graph to send
+     * @param stream The target stream
+     */
     public static void sendGraphTriplesToStream(Graph graph, StreamRDF stream) {
         ExtendedIterator<Triple> iter = graph.find(null, null, null) ;
         try {

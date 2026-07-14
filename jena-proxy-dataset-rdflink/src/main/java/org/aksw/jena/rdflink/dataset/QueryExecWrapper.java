@@ -1,3 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.aksw.jena.rdflink.dataset;
 
 import java.util.Iterator;
@@ -13,9 +34,21 @@ import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.util.Context;
 
+/**
+ * Wrapper interface for {@link QueryExec} that provides hooks for before/after execution
+ * and exception handling.
+ *
+ * <p>This interface delegates all methods to a delegate {@link QueryExec} instance
+ * and provides extension points for custom behavior.</p>
+ */
 public interface QueryExecWrapper
     extends QueryExec
 {
+    /**
+     * Get the wrapped delegate.
+     *
+     * @return the delegate query execution
+     */
     QueryExec getDelegate();
 
     @Override
@@ -48,25 +81,24 @@ public interface QueryExecWrapper
         getDelegate().abort();
     }
 
+    /**
+     * Hook called before query execution.
+     */
     default void beforeExec() {
-//        QueryExec delegate = getDecoratee();
-//        if (delegate instanceof QueryExecWrapper) {
-//            ((QueryExecWrapper)delegate).beforeExec();
-//        }
     }
 
+    /**
+     * Hook called after successful query execution.
+     */
     default void afterExec() {
-//        QueryExec delegate = getDecoratee();
-//        if (delegate instanceof QueryExecWrapper) {
-//            ((QueryExecWrapper)delegate).afterExec();
-//        }
     }
 
+    /**
+     * Hook called when an exception occurs during query execution.
+     *
+     * @param e the exception that occurred
+     */
     default void onException(Exception e) {
-//        QueryExec delegate = getDecoratee();
-//        if (delegate instanceof QueryExecWrapper) {
-//            ((QueryExecWrapper)delegate).onException(e);
-//        }
     }
 
     @Override
@@ -77,7 +109,6 @@ public interface QueryExecWrapper
         } catch(Exception e) {
             onException(e);
             throw e;
-//        	throw new RuntimeException(e);
         } finally {
             afterExec();
         }
@@ -90,7 +121,6 @@ public interface QueryExecWrapper
             return getDelegate().construct();
         } catch(Exception e) {
             onException(e);
-            //throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -104,7 +134,6 @@ public interface QueryExecWrapper
             return getDelegate().construct(graph);
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -118,7 +147,6 @@ public interface QueryExecWrapper
             return getDelegate().describe();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -132,7 +160,6 @@ public interface QueryExecWrapper
             return getDelegate().describe(graph);
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -146,7 +173,6 @@ public interface QueryExecWrapper
             return getDelegate().ask();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -160,7 +186,6 @@ public interface QueryExecWrapper
             return getDelegate().constructTriples();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -174,7 +199,6 @@ public interface QueryExecWrapper
             return getDelegate().describeTriples();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -188,7 +212,6 @@ public interface QueryExecWrapper
             return getDelegate().constructQuads();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -202,7 +225,6 @@ public interface QueryExecWrapper
             return getDelegate().constructDataset();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -216,7 +238,6 @@ public interface QueryExecWrapper
             return getDelegate().constructDataset(dataset);
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -230,7 +251,6 @@ public interface QueryExecWrapper
             return getDelegate().execJson();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();
@@ -244,7 +264,6 @@ public interface QueryExecWrapper
             return getDelegate().execJsonItems();
         } catch(Exception e) {
             onException(e);
-//        	throw new RuntimeException(e);
             throw e;
         } finally {
             afterExec();

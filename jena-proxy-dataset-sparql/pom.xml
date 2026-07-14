@@ -6,7 +6,8 @@
 
 	<artifactId>jena-proxy-dataset-sparql</artifactId>
 	<name>Jena Proxy - Dataset over SPARQL</name>
-	<description>Jena DatasetGraph implementation over the SPARQL query/update protocol</description>
+	<description>Jena DatasetGraph implementation over the SPARQL query/update
+		protocol</description>
 	<packaging>jar</packaging>
 
 	<parent>
@@ -26,6 +27,12 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

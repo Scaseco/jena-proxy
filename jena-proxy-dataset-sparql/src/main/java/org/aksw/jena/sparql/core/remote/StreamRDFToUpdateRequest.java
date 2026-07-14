@@ -36,10 +36,13 @@ import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.UpdateRequest;
 
 /**
- * {@link StreamRDF} that chunks RDF triples/quads and delivers
+ * {@link StreamRDF} implementation that chunks RDF triples/quads and delivers
  * each chunk as an {@link UpdateRequest} to the configured consumer.
  */
 /* package */ class StreamRDFToUpdateRequest implements StreamRDF {
+    /**
+     * Default buffer size.
+     */
     public static final int DFT_BUFFER_SIZE = Integer.MAX_VALUE;
 
     private Consumer<UpdateRequest> sink;
@@ -48,18 +51,31 @@ import org.apache.jena.update.UpdateRequest;
     private QuadDataAcc quadAcc = new QuadDataAcc();
 
     /**
-     * Constructs the StreamRDFToRDFLink using default {@value #DFT_BUFFER_SIZE} quad buffer size.
+     * Constructs the StreamRDFToUpdateRequest using default {@value #DFT_BUFFER_SIZE} quad buffer size.
      *
-     * @param sink the link to talk to.
+     * @param sink the consumer to send update requests to
      */
     public StreamRDFToUpdateRequest(Consumer<UpdateRequest> sink) {
         this(sink, null);
     }
 
+    /**
+     * Constructs the StreamRDFToUpdateRequest with a prefix mapping and default buffer size.
+     *
+     * @param sink the consumer to send update requests to
+     * @param prefixes prefix mapping for the updates
+     */
     public StreamRDFToUpdateRequest(Consumer<UpdateRequest> sink, PrefixMapping prefixes) {
         this(sink, prefixes, DFT_BUFFER_SIZE);
     }
 
+    /**
+     * Constructs the StreamRDFToUpdateRequest.
+     *
+     * @param sink the consumer to send update requests to
+     * @param prefixes prefix mapping for the updates
+     * @param bufferSize maximum number of quads to buffer before flushing
+     */
     public StreamRDFToUpdateRequest(Consumer<UpdateRequest> sink, PrefixMapping prefixes, int bufferSize) {
         super();
         if (bufferSize < 1) {
@@ -72,7 +88,7 @@ import org.apache.jena.update.UpdateRequest;
     }
 
     /**
-     * See if we should flush the buffer.
+     * Check if the buffer should be flushed.
      */
     private void isBufferFull() {
         if ( quadAcc.getQuads().size() >= bufferSize ) {
@@ -81,7 +97,7 @@ import org.apache.jena.update.UpdateRequest;
     }
 
     /**
-     * Flushes the buffer to the connection.
+     * Flush the buffer to the sink.
      */
     @Override
     public void flush() {
@@ -101,7 +117,6 @@ import org.apache.jena.update.UpdateRequest;
 
     @Override
     public void start() {
-        // does nothing.
     }
 
     @Override
@@ -118,11 +133,11 @@ import org.apache.jena.update.UpdateRequest;
 
     @Override
     public void base(String base) {
-        // do nothing
     }
 
     @Override
-    public void version(String version) {}
+    public void version(String version) {
+    }
 
     @Override
     public void prefix(String prefix, String iri) {
@@ -137,13 +152,20 @@ import org.apache.jena.update.UpdateRequest;
         quadAcc.close();
     }
 
-    // ----- Utils -----
-
-    static class StreamRDFTriplesToQuads // XXX Move to StreamRDFOps?
+    /**
+     * StreamRDF wrapper that converts triples to quads in a specified graph.
+     */
+    static class StreamRDFTriplesToQuads
         extends StreamRDFWrapper {
 
         protected final Node graphName;
 
+        /**
+         * Create a new wrapper.
+         *
+         * @param other the underlying stream
+         * @param graphName the graph name to use for converted quads
+         */
         public StreamRDFTriplesToQuads(StreamRDF other, Node graphName) {
             super(other);
             this.graphName = Objects.requireNonNull(graphName);
@@ -156,7 +178,13 @@ import org.apache.jena.update.UpdateRequest;
         }
     }
 
-    /** Send triples of the source graph as quads in the given target graph to the sink. */
+    /**
+     * Send triples of a source graph as quads in a target graph to a stream.
+     *
+     * @param sourceGraph the source graph
+     * @param targetGraphName the target graph node (null for default graph)
+     * @param sink the target stream
+     */
     static void sendGraphTriplesToStream(Graph sourceGraph, Node targetGraphName, StreamRDF sink) {
         boolean isSinkDefaultGraph = targetGraphName == null || Quad.isDefaultGraph(targetGraphName);
         StreamRDF effectiveSink = isSinkDefaultGraph ? sink : new StreamRDFTriplesToQuads(sink, targetGraphName);

@@ -43,17 +43,23 @@ import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateRequest;
 
+/**
+ * Default implementation of {@link DsgSparqlExecutor}.
+ */
 public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
 
+    /**
+     * Strategy for removing graphs.
+     */
     public enum GraphRemovalStrategy {
-        /* Remove graphs using {@code DELETE WHERE { GRAPH :g { ?s ?p ?o } }}. */
+        /** Remove graphs using {@code DELETE WHERE { GRAPH :g { ?s ?p ?o } }}. */
         DELETE,
 
-        /* Remove graphs using {@code CLEAR GRAPH SILENT :g}.
+        /** Remove graphs using {@code CLEAR GRAPH SILENT :g}.
          * The {@code SILENT} prevents failures when clearing absent graphs.*/
         CLEAR_SILENT,
 
-        /* Remove graphs using {@code DROP GRAPH :g}.
+        /** Remove graphs using {@code DROP GRAPH :g}.
          * The {@code SILENT} prevents failures when dropping absent graphs.*/
         DROP_SILENT;
     }
@@ -61,14 +67,20 @@ public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
     private GraphRemovalStrategy graphRemovalStrategy;
     private boolean detectGraphRemovalByDeleteAny;
 
+    /**
+     * Create a new executor with default settings.
+     * Uses {@link GraphRemovalStrategy#DROP_SILENT} and enables graph removal detection.
+     */
     public DsgSparqlExecutorImpl() {
         this(GraphRemovalStrategy.DROP_SILENT, true);
     }
 
     /**
+     * Create a new executor with custom settings.
+     *
      * @param graphRemovalStrategy The strategy for {@code clearGraph(g)}, such as
-     *        {@code CLEAR GRAPH}, {@code DROP GRAPH}, or {@code DELETE}.
-     * @param detectGraphRemovalByDeleteAny Whether {@code deleteAny(g, ANY, ANY, ANY)} should call removeGraph.
+     *        {@code CLEAR GRAPH}, {@code DROP GRAPH}, or {@code DELETE}
+     * @param detectGraphRemovalByDeleteAny Whether {@code deleteAny(g, ANY, ANY, ANY)} should call removeGraph
      */
     public DsgSparqlExecutorImpl(GraphRemovalStrategy graphRemovalStrategy, boolean detectGraphRemovalByDeleteAny) {
         super();
@@ -105,9 +117,6 @@ public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
             Function<UpdateRequest, ? extends UpdateExec> executor,
             PrefixMapping prefixes,
             Node g, Node s, Node p, Node o) {
-        // Call removeGraph if s, p and o are wildcards and detectGraphRemovalByDeleteAny is true.
-        // However, prevent infinite recursion: don't call removeGraph if the strategy is PATTERN,
-        // because then removeGraph will call deleteAny again.
         if (detectGraphRemovalByDeleteAny && !graphRemovalStrategy.equals(GraphRemovalStrategy.DELETE)
                 && (isWildcard(s) && isWildcard(p) && isWildcard(o))) {
             removeGraph(executor, prefixes, g);
@@ -165,7 +174,6 @@ public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
         if (g == null || Node.ANY.equals(g)) {
             return findTriplesOrQuads(executor, prefixes, s, p, o);
         } else if (Quad.isDefaultGraph(g)) {
-            // Default graph -> triples wrapped as quads.
             IteratorCloseable<Triple> base = findTriples(executor, prefixes, s, p, o);
             return (IteratorCloseable<Quad>)Iter.map(base, t -> Quad.create(null, t));
         } else {
@@ -197,6 +205,16 @@ public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
         return DsgSparqlExecUtils.containsGraph(executor, g);
     }
 
+    /**
+     * Find triples in the default graph.
+     *
+     * @param executor Function to create query execution
+     * @param prefixes Prefix mapping for the query
+     * @param s Subject node
+     * @param p Predicate node
+     * @param o Object node
+     * @return Iterator of matching triples
+     */
     protected IteratorCloseable<Triple> findTriples(
             Function<Query, ? extends QueryExec> executor,
             PrefixMapping prefixes,
@@ -204,6 +222,16 @@ public class DsgSparqlExecutorImpl implements DsgSparqlExecutor {
         return DsgSparqlExecUtils.findTriples(executor, s, p, o);
     }
 
+    /**
+     * Find triples or quads depending on dataset configuration.
+     *
+     * @param executor Function to create query execution
+     * @param prefixes Prefix mapping for the query
+     * @param s Subject node
+     * @param p Predicate node
+     * @param o Object node
+     * @return Iterator of matching quads
+     */
     protected IteratorCloseable<Quad> findTriplesOrQuads(
             Function<Query, ? extends QueryExec> executor,
             PrefixMapping prefixes,

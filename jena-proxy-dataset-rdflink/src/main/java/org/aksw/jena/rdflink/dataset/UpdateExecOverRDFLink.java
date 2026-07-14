@@ -60,6 +60,17 @@ public class UpdateExecOverRDFLink
     private volatile boolean isExecStarted = false;
     private volatile UpdateExec delegate = null;
 
+    /**
+     * Create a new update execution wrapper.
+     *
+     * @param linkCreator creator for RDF link instances
+     * @param closeLink whether to close the RDF link after execution
+     * @param substitutionMap variable substitution map
+     * @param context request context
+     * @param parseCheck whether to enable parse checking
+     * @param updateRequest update request
+     * @param updateRequestString update request as string
+     */
     public UpdateExecOverRDFLink(Creator<RDFLink> linkCreator, boolean closeLink,
             Map<Var, Node> substitutionMap, Context context,
             boolean parseCheck, UpdateRequest updateRequest, String updateRequestString) {
@@ -86,6 +97,8 @@ public class UpdateExecOverRDFLink
     /**
      * If the execution has not been started then the context configured with this instance
      * is returned. Otherwise the context of the delegate is returned.
+     *
+     * @return the context
      */
     @Override
     public Context getContext() {
@@ -108,7 +121,7 @@ public class UpdateExecOverRDFLink
         try {
             synchronized (cancelLock) {
                 if (isExecStarted) {
-                    throw new IllegalStateException("Execution was already stated.");
+                    throw new IllegalStateException("Execution was already started.");
                 }
                 isExecStarted = true;
 
@@ -155,6 +168,12 @@ public class UpdateExecOverRDFLink
         }
     }
 
+    /**
+     * Apply timeout settings to an update executor builder.
+     *
+     * @param uExec the update executor builder
+     * @param t the timeout configuration
+     */
     private static void applyTimeouts(UpdateExecBuilder uExec, Timeout t) {
         if (t != null) {
             if (t.hasOverallTimeout()) {

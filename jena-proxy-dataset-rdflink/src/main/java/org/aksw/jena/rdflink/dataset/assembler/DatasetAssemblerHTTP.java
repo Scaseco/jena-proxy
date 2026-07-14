@@ -39,8 +39,19 @@ import org.apache.jena.sparql.core.assembler.DatasetAssembler;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.sys.JenaSystem;
 
+/**
+ * Assembler for creating {@link DatasetGraph} from HTTP endpoints.
+ *
+ * @since 0.7.0
+ */
 public class DatasetAssemblerHTTP extends DatasetAssembler
 {
+    /**
+     * Utility classes should not be instantiated.
+     */
+    private DatasetAssemblerHTTP() {
+    }
+
     static { JenaSystem.init(); }
 
 
@@ -48,6 +59,9 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
 
     static { init(); }
 
+    /**
+     * Initialize the assembler by registering it with the default assembler group.
+     */
     static public synchronized void init() {
         if ( initialized )
             return;
@@ -55,6 +69,11 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
         initialized = true;
     }
 
+    /**
+     * Register this assembler with the given assembler group.
+     *
+     * @param g the assembler group
+     */
     static void registerWith(AssemblerGroup g) {
         // Wire in the assemblers.
         AssemblerUtils.registerAssembler(g, VocabAssemblerHTTP.tDatasetHTTP, new DatasetAssemblerHTTP());
@@ -65,11 +84,26 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
         return make(a, root);
     }
 
+    /**
+     * Get a property value as a string, or return a default.
+     *
+     * @param r the resource
+     * @param p the property
+     * @param dft the default value
+     * @return the property value or the default
+     */
     private static String getAsString(Resource r, Property p, String dft) {
         String tmp = GraphUtils.getAsStringValue(r, p);
         return (tmp != null) ? tmp : dft;
     }
 
+    /**
+     * Create a dataset from an assembler resource configuration.
+     *
+     * @param a the assembler
+     * @param root the root resource
+     * @return the created dataset graph
+     */
     public static DatasetGraph make(Assembler a, Resource root) {
         // Use destination as the default that can be overridden by  specific endpoints.
         String destination = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pDestination);
@@ -146,12 +180,6 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
 
         DatasetGraph dsg = DatasetGraphOverRDFLink.create(linkCreator);
 
-        /*
-        <r> rdf:type tdb:DatasetTDB2;
-            tdb:location "dir";
-            //ja:context [ ja:cxtName "arq:queryTimeout";  ja:cxtValue "10000" ] ;
-            tdb:unionGraph true; # or "true"
-        */
         AssemblerUtils.mergeContext(root, dsg.getContext());
         return dsg;
     }

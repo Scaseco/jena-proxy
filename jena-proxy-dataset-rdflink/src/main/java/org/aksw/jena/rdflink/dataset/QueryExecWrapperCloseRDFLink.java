@@ -32,13 +32,25 @@ import org.apache.jena.sparql.exec.QueryExec;
 public class QueryExecWrapperCloseRDFLink
     extends QueryExecWrapperBase<QueryExec>
 {
+    /** The wrapped RDF link. */
     protected RDFLink link;
 
+    /**
+     * Create a new wrapper.
+     *
+     * @param delegate the delegate query execution
+     * @param link the RDF link to close after the delegate
+     */
     public QueryExecWrapperCloseRDFLink(QueryExec delegate, RDFLink link) {
         super(delegate);
         this.link = Objects.requireNonNull(link);
     }
 
+    /**
+     * Get the wrapped RDF link.
+     *
+     * @return the RDF link
+     */
     public RDFLink getLink() {
         return link;
     }

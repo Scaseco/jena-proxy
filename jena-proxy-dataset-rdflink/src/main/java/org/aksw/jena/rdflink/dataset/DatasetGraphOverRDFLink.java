@@ -51,7 +51,13 @@ public abstract class DatasetGraphOverRDFLink
 
     private final TransactionalOverRDFLink transactional;
 
-    /** Create instances using this class's Builder. */
+    /**
+     * Create a new dataset graph over RDF link.
+     *
+     * @param execution the executor for SPARQL operations
+     * @param supportsTransactions whether transactions are supported
+     * @param supportsTransactionAbort whether transaction abort is supported
+     */
     protected DatasetGraphOverRDFLink(DsgSparqlExecutor execution, boolean supportsTransactions, boolean supportsTransactionAbort) {
         super(execution);
         this.supportsTransactions = supportsTransactions;
@@ -74,9 +80,18 @@ public abstract class DatasetGraphOverRDFLink
         return supportsTransactionAbort;
     }
 
-    /** This method must be overridden. */
+    /**
+     * Create a new RDF link for operations.
+     *
+     * @return a new RDF link instance
+     */
     public abstract RDFLink newLink();
 
+    /**
+     * Get the currently active RDF link for the current thread.
+     *
+     * @return the active RDF link wrapped in an Optional
+     */
     protected Optional<RDFLink> activeLink() {
         return transactional.activeLink();
     }
@@ -91,7 +106,6 @@ public abstract class DatasetGraphOverRDFLink
             RDFLink link = newLink();
             result = link.newQuery()
                 .query(query)
-                // .transformExec(qe -> new QueryExecWrapperCloseRDFLink(qe, link))
                 .build();
 
             result = new QueryExecWrapperCloseRDFLink(result, link);
@@ -108,38 +122,68 @@ public abstract class DatasetGraphOverRDFLink
         return new UpdateExecOverRDFLink(this::newLink, true, null, null, false, update, null);
     }
 
+    /**
+     * Builder for {@link DatasetGraphOverRDFLink} instances.
+     */
     public static class Builder {
         private Creator<RDFLink> rdfLinkCreator;
 
-        // --- SPARQL Strategies ---
         private DsgSparqlExecutor executor = DsgSparqlExecutor.DEFAULT;
 
-        // --- Transaction Settings ---
         private boolean supportsTransactions;
         private boolean supportsTransactionAbort;
 
         private Builder() { }
 
+        /**
+         * Set the RDF link creator.
+         *
+         * @param rdfLinkCreator the creator function for RDF links
+         * @return this builder
+         */
         public Builder linkCreator(Creator<RDFLink> rdfLinkCreator) {
             this.rdfLinkCreator = Objects.requireNonNull(rdfLinkCreator);
             return this;
         }
 
+        /**
+         * Set the executor for SPARQL operations.
+         *
+         * @param executor the executor
+         * @return this builder
+         */
         public Builder executor(DsgSparqlExecutor executor) {
             this.executor = Objects.requireNonNull(executor);
             return this;
         }
 
+        /**
+         * Set whether transactions are supported.
+         *
+         * @param supportsTransactions true to enable transactions
+         * @return this builder
+         */
         public Builder supportsTransactions(boolean supportsTransactions) {
             this.supportsTransactions = supportsTransactions;
             return this;
         }
 
+        /**
+         * Set whether transaction abort is supported.
+         *
+         * @param supportsTransactionAbort true to enable transaction abort
+         * @return this builder
+         */
         public Builder supportsTransactionAbort(boolean supportsTransactionAbort) {
             this.supportsTransactionAbort = supportsTransactionAbort;
             return this;
         }
 
+        /**
+         * Build the dataset graph.
+         *
+         * @return a new dataset graph instance
+         */
         public DatasetGraphOverRDFLink build() {
             Objects.requireNonNull(rdfLinkCreator);
             return new DatasetGraphOverRDFLink(executor, supportsTransactions, supportsTransactionAbort) {
@@ -151,10 +195,21 @@ public abstract class DatasetGraphOverRDFLink
         }
     }
 
+    /**
+     * Create a new builder instance.
+     *
+     * @return a new builder
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
 
+    /**
+     * Create a new dataset graph with the given RDF link creator.
+     *
+     * @param rdfLinkCreator the creator function for RDF links
+     * @return a new dataset graph instance
+     */
     public static DatasetGraphOverRDFLink create(Creator<RDFLink> rdfLinkCreator) {
         return newBuilder().linkCreator(rdfLinkCreator).build();
     }
@@ -170,15 +225,31 @@ class TransactionalOverRDFLink
     private Creator<RDFLink> rdfLinkCreator;
     private ThreadLocal<RDFLink> activeTxn = new ThreadLocal<>();
 
+    /**
+     * Create a new transactional handler.
+     *
+     * @param rdfLinkCreator the creator function for RDF links
+     */
     public TransactionalOverRDFLink(Creator<RDFLink> rdfLinkCreator) {
         super();
         this.rdfLinkCreator = rdfLinkCreator;
     }
 
+    /**
+     * Get the currently active RDF link for the current thread.
+     *
+     * @return the active RDF link wrapped in an Optional
+     */
     public Optional<RDFLink> activeLink() {
         return Optional.ofNullable(activeTxn.get());
     }
 
+    /**
+     * Get the currently active RDF link or throw an exception if not in a transaction.
+     *
+     * @return the active RDF link
+     * @throws JenaTransactionException if not in a transaction
+     */
     public RDFLink requireLink() {
         RDFLink result = activeTxn.get();
         if (result == null) {
@@ -237,9 +308,7 @@ class TransactionalOverRDFLink
         RDFLink link = activeLink().orElse(null);
         if (link != null) {
              if (!link.isInTransaction()) {
-                 // This code block should only be reached when called during .end()
-                 // Otherwise, activeLink() is either non-null and in a transaction, or null and not in a transaction.
-                 return false;
+                  return false;
              }
              return true;
         }
