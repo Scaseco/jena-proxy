@@ -41,6 +41,7 @@
 	<modules>
 		<module>jena-proxy-dataset-sparql</module>
 		<module>jena-proxy-dataset-rdflink</module>
+		<module>jena-proxy-bom</module>
 		<module>jena-proxy-pkg-fuseki-plugin</module>
 	</modules>
 	<properties>

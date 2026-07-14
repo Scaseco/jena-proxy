@@ -32,7 +32,6 @@ import org.apache.jena.sparql.util.Symbol;
 /**
  * Helper methods to compute the effective value of the ARQ parse check option.
  *
- * @see ARQConstants#parseCheck
  */
 public class ParseCheckUtils
 {

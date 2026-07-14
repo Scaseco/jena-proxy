@@ -41,7 +41,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 public class StreamRDFOpsExtra {
     /**
      * Send the triples of graph and an explicitly given prefix mapping, to a StreamRDF.
-     * This operation does not include start/finish nesting - see {@link #graphToStream}.
+     * This operation does not include start/finish nesting - see {@link #sendGraphToStream}.
      */
     public static void sendGraphToStream(Graph graph, StreamRDF stream) {
         PrefixMap prefixMap = PrefixMapFactory.create(graph.getPrefixMapping()) ;
