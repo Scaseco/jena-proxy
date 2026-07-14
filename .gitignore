@@ -1,0 +1,41 @@
+evaluations
+
+*.class
+.classpath
+.project
+.settings
+target
+node_modules
+build
+node
+bin
+staging
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+#Idea files
+.idea/
+*.iml
+*.log
+
+# Fuseki run folder
+run
+
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+deptree.txt
+felix-cache
+
+JSA-NOP.tsv
+results.tsv
+
+*.swp
+
+.vscode
+dependency-reduced-pom.xml
+
