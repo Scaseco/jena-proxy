@@ -79,4 +79,35 @@ public class VocabAssemblerHTTP
     public static final Property pUpdateEndpoint     = Vocab.property(NS, "updateEndpoint");
     /** Property for SPARQL graph store protocol endpoint. */
     public static final Property pGspEndpoint        = Vocab.property(NS, "gspEndpoint");
+
+    // Accept headers for different query types
+    /** Property for Accept header on SELECT queries. */
+    public static final Property pAcceptSelectQuery  = Vocab.property(NS, "acceptSelectQuery");
+    /** Property for Accept header on ASK queries. */
+    public static final Property pAcceptAskQuery     = Vocab.property(NS, "acceptAskQuery");
+    /** Property for Accept header on CONSTRUCT/DESCRIBE (graphs). */
+    public static final Property pAcceptGraph        = Vocab.property(NS, "acceptGraph");
+    /** Property for Accept header on CONSTRUCT QUAD/datasets. */
+    public static final Property pAcceptDataset      = Vocab.property(NS, "acceptDataset");
+    /** Property for Accept header fallback for all queries. */
+    public static final Property pAcceptQuery        = Vocab.property(NS, "acceptQuery");
+
+    // Output formats (language names as strings)
+    /** Property for quads output format. */
+    public static final Property pQuadsFormat        = Vocab.property(NS, "quadsFormat");
+    /** Property for triples output format. */
+    public static final Property pTriplesFormat      = Vocab.property(NS, "triplesFormat");
+
+    // Send modes
+    /** Property for query send mode. */
+    public static final Property pQuerySendMode      = Vocab.property(NS, "querySendMode");
+    /** Property for update send mode. */
+    public static final Property pUpdateSendMode     = Vocab.property(NS, "updateSendMode");
+
+    // Parse checks
+    /** Property for parse check on SPARQL queries/updates. */
+    public static final Property pParseCheckSPARQL   = Vocab.property(NS, "parseCheckSPARQL");
+
+    /** Property for the HTTP User Agent. */
+    public static final Property pUserAgent          = Vocab.property(NS, "userAgent");
 }

@@ -21,6 +21,7 @@ package org.aksw.jena.rdflink.dataset.assembler;
 import java.net.Authenticator;
 import java.net.http.HttpClient;
 import java.util.Arrays;
+import java.util.Set;
 
 import org.aksw.jena.rdflink.dataset.DatasetGraphOverRDFLink;
 import org.apache.jena.assembler.Assembler;
@@ -28,16 +29,27 @@ import org.apache.jena.assembler.assemblers.AssemblerGroup;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.Creator;
 import org.apache.jena.http.HttpEnv;
+import org.apache.jena.http.HttpLib;
 import org.apache.jena.http.auth.AuthLib;
+import org.apache.jena.http.sys.HttpRequestModifier;
+import org.apache.jena.http.sys.RegistryRequestModifier;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdflink.RDFLink;
 import org.apache.jena.rdflink.RDFLinkHTTP;
+import org.apache.jena.rdflink.RDFLinkHTTPBuilder;
+import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sparql.core.assembler.DatasetAssembler;
+import org.apache.jena.sparql.exec.http.QuerySendMode;
+import org.apache.jena.sparql.exec.http.UpdateSendMode;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.sys.JenaSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Assembler for creating {@link DatasetGraph} from HTTP endpoints.
@@ -46,6 +58,11 @@ import org.apache.jena.sys.JenaSystem;
  */
 public class DatasetAssemblerHTTP extends DatasetAssembler
 {
+    private static final Logger logger = LoggerFactory.getLogger(DatasetAssemblerHTTP.class);
+
+    // Showing the user agent warning once should be sufficient.
+    private static boolean warningShown_userAgent = false;
+
     /**
      * Utility classes should not be instantiated.
      */
@@ -97,6 +114,13 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
         return (tmp != null) ? tmp : dft;
     }
 
+    private static Boolean getAsBoolean(Resource r, Property p) {
+        Statement s = r.getProperty(p);
+        if (s == null)
+            return null;
+        return s.getBoolean();
+    }
+
     /**
      * Create a dataset from an assembler resource configuration.
      *
@@ -123,6 +147,22 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
         if (q == null && u == null && g == null) {
             throw new AssemblerException(root, "No destination set using any of the properties: " +
                 Arrays.asList(VocabAssemblerHTTP.pDestination, VocabAssemblerHTTP.pQueryEndpoint, VocabAssemblerHTTP.pUpdateEndpoint, VocabAssemblerHTTP.pGspEndpoint));
+        }
+
+        String userAgent = GraphUtils.getStringValue(root, VocabAssemblerHTTP.pUserAgent);
+        if (userAgent != null) {
+            if (!warningShown_userAgent) {
+                warningShown_userAgent = true;
+                logger.warn("Due to technical limitations, HTTP User-Agents headers are registered globally on a URL basis.");
+                logger.warn("Beware that multiple configurations for the same URL may interfere.");
+            }
+            RegistryRequestModifier reg = RegistryRequestModifier.get();
+            Set<String> endpoints = Set.of(queryEndpoint, updateEndpoint, gspEndpoint);
+            for (String endpoint : endpoints) {
+                logger.info("Registering HTTP User-Agent for service " + endpoint + ": " + userAgent);
+                HttpRequestModifier mod = (params, headers) -> headers.put(HttpNames.hUserAgent, userAgent);
+                reg.add(endpoint, mod);
+            }
         }
 
         boolean isBasicAuth = false;
@@ -169,17 +209,58 @@ public class DatasetAssemblerHTTP extends DatasetAssembler
         HttpClient h = httpClient;
 
         Creator<RDFLink> linkCreator = () -> {
-            RDFLink link = RDFLinkHTTP.newBuilder()
+            RDFLinkHTTPBuilder builder = RDFLinkHTTP.newBuilder()
                 .queryEndpoint(q)
                 .updateEndpoint(u)
                 .gspEndpoint(g)
-                .httpClient(h)
-                .build();
+                .httpClient(h);
+
+            // Accept headers
+            String acceptSelect = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pAcceptSelectQuery);
+            String acceptAsk = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pAcceptAskQuery);
+            String acceptGraph = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pAcceptGraph);
+            String acceptDataset = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pAcceptDataset);
+            String acceptQuery = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pAcceptQuery);
+
+            if (acceptSelect != null)
+                builder.acceptHeaderSelectQuery(acceptSelect);
+            if (acceptAsk != null)
+                builder.acceptHeaderAskQuery(acceptAsk);
+            if (acceptGraph != null)
+                builder.acceptHeaderGraph(acceptGraph);
+            if (acceptDataset != null)
+                builder.acceptHeaderDataset(acceptDataset);
+            if (acceptQuery != null)
+                builder.acceptHeaderQuery(acceptQuery);
+
+            // Output formats
+            String quadsFormat = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pQuadsFormat);
+            String triplesFormat = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pTriplesFormat);
+
+            if (quadsFormat != null)
+                builder.quadsFormat(quadsFormat);
+            if (triplesFormat != null)
+                builder.triplesFormat(triplesFormat);
+
+            // Send modes
+            String querySendMode = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pQuerySendMode);
+            String updateSendMode = GraphUtils.getAsStringValue(root, VocabAssemblerHTTP.pUpdateSendMode);
+
+            if (querySendMode != null)
+                builder.querySendMode(QuerySendMode.valueOf(querySendMode));
+            if (updateSendMode != null)
+                builder.updateSendMode(UpdateSendMode.valueOf(updateSendMode));
+
+            // Parse checks
+            Boolean parseCheck = getAsBoolean(root, VocabAssemblerHTTP.pParseCheckSPARQL);
+            if (parseCheck != null)
+                builder.parseCheckSPARQL(parseCheck);
+
+            RDFLink link = builder.build();
             return link;
         };
 
         DatasetGraph dsg = DatasetGraphOverRDFLink.create(linkCreator);
-
         AssemblerUtils.mergeContext(root, dsg.getContext());
         return dsg;
     }

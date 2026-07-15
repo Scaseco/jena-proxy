@@ -91,6 +91,75 @@ dsg.getDefaultGraph().contains(...);
     ] .
 ```
 
+#### Advanced Configuration Options
+
+The assembler supports additional properties for fine-grained HTTP configuration:
+
+```turtle
+<#dataset> a dsg:DatasetHTTP ;
+    dsg:destination "http://localhost:3030/dataset" ;
+
+    # Accept headers for different query types
+    dsg:acceptSelectQuery "application/sparql-results+json" ;
+    dsg:acceptAskQuery "application/sparql-results+json" ;
+    dsg:acceptGraph "text/turtle,application/n-triples" ;
+    dsg:acceptDataset "application/trig,application/n-quads" ;
+    dsg:acceptQuery "*/*" ;  # Fallback for unknown query types
+
+    # Output formats
+    dsg:quadsFormat "trig" ;
+    dsg:triplesFormat "turtle" ;
+
+    # Send modes (query and update)
+    dsg:querySendMode "asPost" ;
+    dsg:updateSendMode "asPostForm" ;
+
+    # Parse checks
+    dsg:parseCheckSPARQL true .
+```
+
+**Available properties:**
+
+| Property | Description | Values |
+|----------|-------------|--------|
+| `dsg:acceptSelectQuery` | Accept header for SELECT queries | MIME type (e.g., `application/sparql-results+json`) |
+| `dsg:acceptAskQuery` | Accept header for ASK queries | MIME type |
+| `dsg:acceptGraph` | Accept header for CONSTRUCT/DESCRIBE (graphs) | MIME type |
+| `dsg:acceptDataset` | Accept header for CONSTRUCT QUAD/datasets | MIME type |
+| `dsg:acceptQuery` | Fallback Accept header for all queries | MIME type |
+| `dsg:acceptQuery` | Fallback Accept header for all queries | MIME type |
+| `dsg:quadsFormat` | Output format for quads | Language name (e.g., `trig`, `n-quads`) or MIME type |
+| `dsg:triplesFormat` | Output format for triples | Language name (e.g., `turtle`, `n-triples`) or MIME type |
+| `dsg:querySendMode` | How to send SPARQL queries | `asGetWithLimitForm`, `asGetWithLimitBody`, `asGetAlways`, `asPostForm`, `asPost` |
+| `dsg:updateSendMode` | How to send SPARQL updates | `asPostForm`, `asPost` |
+| `dsg:parseCheckSPARQL` | Validate SPARQL queries/updates | `true` or `false` |
+
+#### HTTP User-Agent Configuration
+
+**Technical limitation:** Due to Jena's HTTP architecture, the User-Agent header cannot be configured per-dataset via the assembler. The `HttpClient` in Java doesn't support default headers at the client level.
+
+**Available options:**
+
+1. **Global configuration** (applies to all HTTP clients in the JVM):
+   ```java
+   import org.apache.jena.http.HttpEnv;
+   import java.net.http.HttpClient;
+   
+   HttpClient client = HttpClient.newBuilder()
+       .header("User-Agent", "MyApp/1.0")
+       .build();
+   HttpEnv.setDftHttpClient(client);
+   ```
+
+2. **Per-dataset via assembler** (uses global registry):
+   The assembler supports the `dsg:userAgent` property, which registers the User-Agent header globally for the configured endpoints:
+   ```turtle
+   <#dataset> a dsg:DatasetHTTP ;
+       dsg:destination "http://localhost:3030/dataset" ;
+       dsg:userAgent "MyApp/1.0" .
+   ```
+   **Warning:** This approach registers the header globally in a shared registry due to current technical limitations. If multiple datasets target the same URL with different User-Agents, they may interfere with each other. The assembler logs a warning the first time it encounters a `dsg:userAgent` property.
+
 ## Build
 
 ```bash
