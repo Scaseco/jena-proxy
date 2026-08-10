@@ -78,6 +78,6 @@ public class JenaPluginDatasetGraphOverRDFLink
 
     @Override
     public int level() {
-        return 1000000;
+        return 40;
     }
 }
