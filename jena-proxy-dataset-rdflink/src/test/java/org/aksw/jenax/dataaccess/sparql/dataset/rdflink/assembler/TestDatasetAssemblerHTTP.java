@@ -22,6 +22,34 @@ import org.apache.jena.system.Txn;
 public class TestDatasetAssemblerHTTP {
 
     @Test
+    public void testWithNewSettings() {
+        // Test that new assembler properties can be parsed
+        String assemblerStr = """
+            PREFIX jds: <https://w3id.org/aksw/jena/dataset#>
+            PREFIX lang: <http://www.w3.org/ns/formats/>
+
+            <urn:root>
+              a jds:DatasetHTTP ;
+              jds:acceptSelectQuery "application/sparql-results+json" ;
+              jds:acceptAskQuery "application/sparql-results+json" ;
+              jds:acceptGraph "text/turtle" ;
+              jds:acceptDataset "application/trig" ;
+              jds:acceptQuery "*/*" ;
+              jds:quadsFormat "trig" ;
+              jds:triplesFormat "turtle" ;
+              jds:querySendMode "asPost" ;
+              jds:updateSendMode "asPostForm" ;
+              jds:parseCheckSPARQL true ;
+              jds:destination "http://example.org/sparql" ;
+              .
+            """;
+
+        Resource assemblerRes = RDFParser.fromString(assemblerStr, Lang.TURTLE).toModel().getResource("urn:root");
+        // Just verify it parses and assembles without exception
+        DatasetFactory.assemble(assemblerRes);
+    }
+
+    @Test
     public void test() {
 //        FusekiServer server = FusekiServer.create().port(3456).build();
 //
