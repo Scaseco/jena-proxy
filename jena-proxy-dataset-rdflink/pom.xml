@@ -15,10 +15,6 @@
 		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<jena-exectracker.version>0.7.2-SNAPSHOT</jena-exectracker.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.jena</groupId>
@@ -34,7 +30,7 @@
 		<dependency>
 			<groupId>org.aksw.jena.exectracker</groupId>
 			<artifactId>jena-exectracker-arq</artifactId>
-			<version>${jena-exectracker.version}</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
