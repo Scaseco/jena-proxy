@@ -34,12 +34,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.aksw.jena.exectracker</groupId>
-			<artifactId>jena-exectracker-fuseki-mod</artifactId>
-			<version>${jena-exectracker.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>jena-fuseki-main</artifactId>
 		</dependency>
